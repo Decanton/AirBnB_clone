@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Airbnb Clone Project
 
 This is an Airbnb clone project that aims to replicate the basic functionality of the Airbnb platform. The project includes classes for managing users, states, cities, places, amenities, and reviews. It also features a command-line interface for interacting with the application and a simple file-based storage mechanism.
@@ -39,3 +40,6 @@ pip install -r requirements.txt
 - [python main.py]
 
 Use the available commands to interact with the application. Type help to see the list of available commands and their usage.
+=======
+# AirBNB Clone
+>>>>>>> a7db9ad1e1c6bf29d6010ef9fe178dfd633c10ff

@@ -10,7 +10,9 @@ import models
 class BaseModel():
     """This is the BaseModel class"""
     def __init__(self, *args, **kwargs):
-        """Initialize the object with a random uuid"""
+        """
+        Initialize the object with a random uuid
+        """
         if kwargs:
             for key, value in kwargs.items():
                 if key == '__class__':
@@ -26,7 +28,9 @@ class BaseModel():
             models.storage.new(self)
 
     def to_dict(self):
-        """Returns a dict containing values of self.__dict__"""
+        """
+        Returns a dict containing values of self.__dict__
+        """
         result = dict(self.__dict__)
         result['created_at'] = self.created_at.isoformat()
         result['updated_at'] = self.updated_at.isoformat()
@@ -34,12 +38,15 @@ class BaseModel():
         return result
 
     def save(self):
-        """Updates the public instance attribute updated_at to now"""
+        """
+        Updates the public instance attribute updated_at to now
+        """
         self.updated_at = datetime.now()
         models.storage.save()
 
     def __repr__(self):
-        """Returns a string representation in the form
+        """
+        Returns a string representation in the form
         [<class name>] (<self.id>) <self.__dict__>
         """
         return f'[{self.__class__.__name__}] ({self.id}) {self.__dict__}'

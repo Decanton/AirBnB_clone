@@ -7,6 +7,8 @@ from models.base_model import BaseModel
 from unittest import TestCase
 from uuid import UUID
 
+import re
+
 
 class TestBaseModel(TestCase):
     """This is the TestBaseModel class"""
@@ -23,11 +25,20 @@ class TestBaseModel(TestCase):
 
     def test_to_dict(self):
         """Unitttest for BaseModel.to_dict"""
+        obj = BaseModel()
+        self.assertTrue(isinstance(obj.to_dict(), dict))
 
     def test_save(self):
-        """Updates the public instance attribute updated_at to now"""
+        """Tests that updated_at is updated to now"""
+        obj = BaseModel()
+        then = obj.updated_at
+        obj.save()
+        self.assertNotEqual(obj.updated_at, then)
 
     def test_repr(self):
         """
         Unittest for str(BaseModel) and repr(BaseModel)
         """
+        obj = BaseModel()
+        pattern = f'^\\[BaseModel\\] \\({obj.id}\\) \\{{.*\\}}$'
+        self.assertTrue(re.search(pattern, str(obj)))

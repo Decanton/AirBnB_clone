@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""This module defines test for the Amenity class"""
+"""This module define test for the Amenity class"""
 
 
 from models.amenity import Amenity

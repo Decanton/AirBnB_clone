@@ -5,6 +5,7 @@ import re
 import unittest
 from console import HBNBCommand
 from io import StringIO
+from models.engine.file_storage import CLASSES
 from unittest import TestCase
 from unittest.mock import patch
 from uuid import UUID
@@ -74,190 +75,199 @@ class TestHBNBCommand(TestCase):
         """
         Unittest for the HBNBCommand.do_create function
         """
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd('create BaseModel')
-            id = out.getvalue().strip()
-            # An excetion will be thrown here if this is not a valid uuid
-            UUID(id)
-            self.created_ids[id] = 'BaseModel'
-        # For a class that does not exist
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd('create NonExistentModel')
-            result = out.getvalue().strip()
-            self.assertEqual("** class doesn't exist **", result)
+        for model_name in CLASSES:
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'create {model_name}')
+                id = out.getvalue().strip()
+                # An excetion will be thrown here if this is not a valid uuid
+                UUID(id)
+                self.created_ids[id] = f'{model_name}'
+            # For a class that does not exist
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd('create NonExistentModel')
+                result = out.getvalue().strip()
+                self.assertEqual("** class doesn't exist **", result)
 
     def test_destroy(self):
         """
-        Unittest for the HBNBCommand.do_create function
+        Unittest for the HBNBCommand.do_destroy function
         """
         id = ''
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd('create BaseModel')
-            id = out.getvalue().strip()
-            UUID(id)
-        # For normal destroying
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'destroy BaseModel {id}')
-            result = out.getvalue().strip()
-            self.assertEqual(len(result), 0)
-        # For a class that does not exist
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'destroy NonExistentModel {id}')
-            result = out.getvalue().strip()
-            self.assertEqual("** class doesn't exist **", result)
-        # For an id that does not exist
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'destroy BaseModel {id}')
-            result = out.getvalue().strip()
-            self.assertEqual("** no instance found **", result)
+        for model_name in CLASSES:
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'create {model_name}')
+                id = out.getvalue().strip()
+                UUID(id)
+            # For normal destroying
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'destroy {model_name} {id}')
+                result = out.getvalue().strip()
+                self.assertEqual(len(result), 0)
+            # For a class that does not exist
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'destroy NonExistentModel {id}')
+                result = out.getvalue().strip()
+                self.assertEqual("** class doesn't exist **", result)
+            # For an id that does not exist
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'destroy {model_name} {id}')
+                result = out.getvalue().strip()
+                self.assertEqual("** no instance found **", result)
 
     def test_show(self):
         """
         Unittest for the HBNBCommand.do_show function
         """
         id = ''
-        model_name = 'BaseModel'
-        # Create some new object and get the id
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'create {model_name}')
-            id = out.getvalue().strip()
-            UUID(id)
-            self.created_ids[id] = model_name
-        # For normal expected output
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'show {model_name} {id}')
-            result = out.getvalue().strip()
-            pattern = f'^\\[{model_name}\\] \\({id}\\) \\{{.*\\}}$'
-            self.assertTrue(re.search(pattern, result))
-        # When class does not exist
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd('show NoneExistingModel id')
-            result = out.getvalue().strip()
-            self.assertEqual("** class doesn't exist **", result)
-        # When id does not exist
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'show {model_name} id-does-not-exist')
-            result = out.getvalue().strip()
-            self.assertEqual("** no instance found **", result)
-        # When class name is not supplied
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd('show')
-            result = out.getvalue().strip()
-            self.assertEqual("** class name missing **", result)
-        # When id is not supplied
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'show {model_name}')
-            result = out.getvalue().strip()
-            self.assertEqual("** instance id missing **", result)
+        for model_name in CLASSES:
+            # Create some new object and get the id
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'create {model_name}')
+                id = out.getvalue().strip()
+                UUID(id)
+                self.created_ids[id] = model_name
+            # For normal expected output
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'show {model_name} {id}')
+                result = out.getvalue().strip()
+                pattern = f'^\\[{model_name}\\] \\({id}\\) \\{{.*\\}}$'
+                self.assertTrue(re.search(pattern, result))
+            # When class does not exist
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd('show NoneExistingModel id')
+                result = out.getvalue().strip()
+                self.assertEqual("** class doesn't exist **", result)
+            # When id does not exist
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'show {model_name} id-does-not-exist')
+                result = out.getvalue().strip()
+                self.assertEqual("** no instance found **", result)
+            # When class name is not supplied
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd('show')
+                result = out.getvalue().strip()
+                self.assertEqual("** class name missing **", result)
+            # When id is not supplied
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'show {model_name}')
+                result = out.getvalue().strip()
+                self.assertEqual("** instance id missing **", result)
 
     def test_update(self):
         """
         Unittest for the HBNBCommand.do_update function
         """
         id = ''
-        model_name = 'User'
-        # Create some new object and get the id
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'create {model_name}')
-            id = out.getvalue().strip()
-            UUID(id)
-            self.created_ids[id] = model_name
-        at_name = 'email'
-        at_value = 'fakemail@service.com'
-        # For normal running of update
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(
-                f'update {model_name} {id} {at_name} {at_value}')
-            result = out.getvalue().strip()
-            self.assertEqual(len(result), 0)
-        # Test that the attribute was added successfully
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'show {model_name} {id}')
-            result = out.getvalue().strip()
-            pattern = f'^\\[{model_name}\\] \\({id}\\) '\
-                f'\\{{.*\'{at_name}\': \'{at_value}\'.*\\}}$'
-            self.assertTrue(re.search(pattern, result))
-        # When class does not exist
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(
-                f'update NonExistentClass {id} {at_name} {at_value}')
-            result = out.getvalue().strip()
-            self.assertEqual("** class doesn't exist **", result)
-        # When id does not exist
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(
-                f'update {model_name} id-not-in-storage {at_name} {at_value}')
-            result = out.getvalue().strip()
-            self.assertEqual("** no instance found **", result)
-        # When id is not valid for the class
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(
-                f'update BaseModel {id} {at_name} {at_value}')
-            result = out.getvalue().strip()
-            self.assertEqual("** no instance found **", result)
-        # When class name is not supplied
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd('update')
-            result = out.getvalue().strip()
-            self.assertEqual("** class name missing **", result)
-        # When id is not supplied
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'update {model_name}')
-            result = out.getvalue().strip()
-            self.assertEqual("** instance id missing **", result)
-        # When attribute name is not supplied
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'update {model_name} {id}')
-            result = out.getvalue().strip()
-            self.assertEqual("** attribute name missing **", result)
-        # When attribute value is not supplied
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'update {model_name} {id} {at_name}')
-            result = out.getvalue().strip()
-            self.assertEqual("** value missing **", result)
+        for model_name in CLASSES:
+            # Create some new object and get the id
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'create {model_name}')
+                id = out.getvalue().strip()
+                UUID(id)
+                self.created_ids[id] = model_name
+            at_name = 'email'
+            at_value = 'fakemail@service.com'
+            # For normal running of update
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(
+                    f'update {model_name} {id} {at_name} {at_value}')
+                result = out.getvalue().strip()
+                self.assertEqual(len(result), 0)
+            # Test that the attribute was added successfully
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'show {model_name} {id}')
+                result = out.getvalue().strip()
+                pattern = f'^\\[{model_name}\\] \\({id}\\) '\
+                    f'\\{{.*\'{at_name}\': \'{at_value}\'.*\\}}$'
+                self.assertTrue(re.search(pattern, result))
+            # When class does not exist
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(
+                    f'update NonExistentClass {id} {at_name} {at_value}')
+                result = out.getvalue().strip()
+                self.assertEqual("** class doesn't exist **", result)
+            # When id does not exist
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(
+                    f'update {model_name} id-absent {at_name} {at_value}')
+                result = out.getvalue().strip()
+                self.assertEqual("** no instance found **", result)
+            # When id is not valid for the class
+            with patch('sys.stdout', new=StringIO()) as out:
+                not_model = model_name
+                if not_model == 'BaseModel':
+                    not_model = 'User'
+                else:
+                    not_model = 'BaseModel'
+                HBNBCommand().onecmd(
+                    f'update {not_model} {id} {at_name} {at_value}')
+                result = out.getvalue().strip()
+                self.assertEqual("** no instance found **", result)
+            # When class name is not supplied
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd('update')
+                result = out.getvalue().strip()
+                self.assertEqual("** class name missing **", result)
+            # When id is not supplied
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'update {model_name}')
+                result = out.getvalue().strip()
+                self.assertEqual("** instance id missing **", result)
+            # When attribute name is not supplied
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'update {model_name} {id}')
+                result = out.getvalue().strip()
+                self.assertEqual("** attribute name missing **", result)
+            # When attribute value is not supplied
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'update {model_name} {id} {at_name}')
+                result = out.getvalue().strip()
+                self.assertEqual("** value missing **", result)
 
     def test_all(self):
         """
         Unittest for the HBNBCommand.do_all function
         """
         id = ''
-        model_name = 'BaseModel'
-        # Create some new object and get the id
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'create {model_name}')
-            id = out.getvalue().strip()
-            UUID(id)
-            self.created_ids[id] = model_name
-        id2 = ''
-        model_name2 = 'User'
-        # Create some different object and get the id
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'create {model_name2}')
-            id2 = out.getvalue().strip()
-            UUID(id2)
-            self.created_ids[id2] = model_name2
-        # For normal expected output
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'all {model_name}')
-            result = out.getvalue().strip()
-            pattern = f'^\\[("\\[{model_name}\\] \\(.*\\) \\{{.*\\}},?")*\\]$'
-            self.assertTrue(re.search(pattern, result))
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'all {model_name2}')
-            result = out.getvalue().strip()
-            pattern = f'^\\[("\\[{model_name2}\\] \\(.*\\) \\{{.*\\}},?")*\\]$'
-            self.assertTrue(re.search(pattern, result))
-        # When class does not exist
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd('all NoneExistingModel')
-            result = out.getvalue().strip()
-            self.assertEqual("** class doesn't exist **", result)
-        # When class name is not supplied
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd('all')
-            result = out.getvalue().strip()
-            pattern = '^\\[("\\[.*\\] \\(.*\\) \\{.*\\},?")*\\]$'
-            self.assertTrue(re.search(pattern, result))
+        for model_name in CLASSES:
+            # Create some new object and get the id
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'create {model_name}')
+                id = out.getvalue().strip()
+                UUID(id)
+                self.created_ids[id] = model_name
+            id2 = ''
+            model_name2 = 'User'
+            # Create some different object and get the id
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'create {model_name2}')
+                id2 = out.getvalue().strip()
+                UUID(id2)
+                self.created_ids[id2] = model_name2
+            # For normal expected output
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'all {model_name}')
+                result = out.getvalue().strip()
+                pattern = f'^\\[("\\[{model_name}\\] \\(.*\\) '\
+                    f'\\{{.*\\}},?")*\\]$'
+                self.assertTrue(re.search(pattern, result))
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'all {model_name2}')
+                result = out.getvalue().strip()
+                pattern = f'^\\[("\\[{model_name2}\\] \\(.*\\) '\
+                    f'\\{{.*\\}},?")*\\]$'
+                self.assertTrue(re.search(pattern, result))
+            # When class does not exist
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd('all NoneExistingModel')
+                result = out.getvalue().strip()
+                self.assertEqual("** class doesn't exist **", result)
+            # When class name is not supplied
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd('all')
+                result = out.getvalue().strip()
+                pattern = '^\\[("\\[.*\\] \\(.*\\) \\{.*\\},?")*\\]$'
+                self.assertTrue(re.search(pattern, result))
 
     def test_class_all(self):
         """
@@ -265,18 +275,18 @@ class TestHBNBCommand(TestCase):
         Where Class is a supported class in the application
         """
         id = ''
-        model_name = 'BaseModel'
-        # Create some new object and get the id
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'create {model_name}')
-            id = out.getvalue().strip()
-            UUID(id)
-            self.created_ids[id] = model_name
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'{model_name}.all()')
-            result = out.getvalue().strip()
-            pattern = f'^\\[(\\[{model_name}\\] \\(.*\\) \\{{.*\\}},?)*\\]$'
-            self.assertTrue(re.search(pattern, result))
+        for model_name in CLASSES:
+            # Create some new object and get the id
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'create {model_name}')
+                id = out.getvalue().strip()
+                UUID(id)
+                self.created_ids[id] = model_name
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'{model_name}.all()')
+                result = out.getvalue().strip()
+                patter = f'^\\[(\\[{model_name}\\] \\(.*\\) \\{{.*\\}},?)*\\]$'
+                self.assertTrue(re.search(patter, result))
 
     def test_class_count(self):
         """
@@ -284,18 +294,18 @@ class TestHBNBCommand(TestCase):
         Where Class is a supported class in the application
         """
         id = ''
-        model_name = 'BaseModel'
-        # Create some new object and get the id
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'create {model_name}')
-            id = out.getvalue().strip()
-            UUID(id)
-            self.created_ids[id] = model_name
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'{model_name}.count()')
-            result = out.getvalue().strip()
-            pattern = f'\\d+$'
-            self.assertTrue(re.search(pattern, result))
+        for model_name in CLASSES:
+            # Create some new object and get the id
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'create {model_name}')
+                id = out.getvalue().strip()
+                UUID(id)
+                self.created_ids[id] = model_name
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'{model_name}.count()')
+                result = out.getvalue().strip()
+                pattern = f'\\d+$'
+                self.assertTrue(re.search(pattern, result))
 
     def test_class_show(self):
         """
@@ -304,29 +314,29 @@ class TestHBNBCommand(TestCase):
         id must be a quoted string (double quotes)
         """
         id = ''
-        model_name = 'BaseModel'
-        # Create some new object and get the id
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'create {model_name}')
-            id = out.getvalue().strip()
-            UUID(id)
-            self.created_ids[id] = model_name
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'{model_name}.show("{id}")')
-            result = out.getvalue().strip()
-            pattern = f'^\\[{model_name}\\] \\({id}\\) \\{{.*\\}}$'
-            self.assertTrue(re.search(pattern, result))
-        # When id does not exist
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'{model_name}.show("id-does-not-exist")')
-            result = out.getvalue().strip()
-            self.assertEqual("** no instance found **", result)
-        # When the argument is not double quoted
-        with patch('sys.stdout', new=StringIO()) as out:
-            command = f'{model_name}.show({id})'
-            HBNBCommand().onecmd(command)
-            result = out.getvalue().strip('\n')
-            self.assertEqual(f"*** Unknown syntax: {command}", result)
+        for model_name in CLASSES:
+            # Create some new object and get the id
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'create {model_name}')
+                id = out.getvalue().strip()
+                UUID(id)
+                self.created_ids[id] = model_name
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'{model_name}.show("{id}")')
+                result = out.getvalue().strip()
+                pattern = f'^\\[{model_name}\\] \\({id}\\) \\{{.*\\}}$'
+                self.assertTrue(re.search(pattern, result))
+            # When id does not exist
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'{model_name}.show("id-does-not-exist")')
+                result = out.getvalue().strip()
+                self.assertEqual("** no instance found **", result)
+            # When the argument is not double quoted
+            with patch('sys.stdout', new=StringIO()) as out:
+                command = f'{model_name}.show({id})'
+                HBNBCommand().onecmd(command)
+                result = out.getvalue().strip('\n')
+                self.assertEqual(f"*** Unknown syntax: {command}", result)
 
     def test_class_update(self):
         """
@@ -337,41 +347,45 @@ class TestHBNBCommand(TestCase):
         value must be quoted if it is a string
         """
         id = ''
-        model_name = 'User'
-        # Create some new object and get the id
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'create {model_name}')
-            id = out.getvalue().strip()
-            UUID(id)
-            self.created_ids[id] = model_name
-        # For normal running of update
-        at_name = 'email'
-        at_value = 'fakemail@service.com'
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(
-                f'{model_name}.update("{id}", "{at_name}", "{at_value}")')
-            result = out.getvalue().strip()
-            self.assertEqual(len(result), 0)
-        # Test that the attribute was added successfully
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'show {model_name} {id}')
-            result = out.getvalue().strip()
-            pattern = f'^\\[{model_name}\\] \\({id}\\) '\
-                f'\\{{.*\'{at_name}\': \'{at_value}\'.*\\}}$'
-            self.assertTrue(re.search(pattern, result))
-        # When id does not exist
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(
-                f'{model_name}.update("id-not-in-storage", '
-                f'"{at_name}", "{at_value}")')
-            result = out.getvalue().strip()
-            self.assertEqual("** no instance found **", result)
-        # When id is not valid for the class
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(
-                f'BaseModel.update("{id}", "{at_name}", "{at_value}")')
-            result = out.getvalue().strip()
-            self.assertEqual("** no instance found **", result)
+        for model_name in CLASSES:
+            # Create some new object and get the id
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'create {model_name}')
+                id = out.getvalue().strip()
+                UUID(id)
+                self.created_ids[id] = model_name
+            # For normal running of update
+            at_name = 'email'
+            at_value = 'fakemail@service.com'
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(
+                    f'{model_name}.update("{id}", "{at_name}", "{at_value}")')
+                result = out.getvalue().strip()
+                self.assertEqual(len(result), 0)
+            # Test that the attribute was added successfully
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'show {model_name} {id}')
+                result = out.getvalue().strip()
+                pattern = f'^\\[{model_name}\\] \\({id}\\) '\
+                    f'\\{{.*\'{at_name}\': \'{at_value}\'.*\\}}$'
+                self.assertTrue(re.search(pattern, result))
+            # When id does not exist
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(
+                    f'{model_name}.update("id-not-in-storage", '
+                    f'"{at_name}", "{at_value}")')
+                result = out.getvalue().strip()
+                self.assertEqual("** no instance found **", result)
+            # When id is not valid for the class
+            with patch('sys.stdout', new=StringIO()) as out:
+                if model_name == 'BaseModel':
+                    model_name = 'User'
+                else:
+                    model_name = 'BaseModel'
+                HBNBCommand().onecmd(
+                    f'{model_name}.update("{id}", "{at_name}", "{at_value}")')
+                result = out.getvalue().strip()
+                self.assertEqual("** no instance found **", result)
 
     def test_class_update(self):
         """
@@ -382,39 +396,43 @@ class TestHBNBCommand(TestCase):
         value must be quoted if it is a string
         """
         id = ''
-        model_name = 'User'
-        # Create some new object and get the id
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'create {model_name}')
-            id = out.getvalue().strip()
-            UUID(id)
-            self.created_ids[id] = model_name
-        # For normal running of update
-        vals = '{\'first_name\': "John", "age": 89, "email":"fake@mail.com"}'
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(
-                f'{model_name}.update("{id}", {vals})')
-            result = out.getvalue().strip()
-            self.assertEqual(len(result), 0)
-        # Test that the attribute was added successfully
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(f'show {model_name} {id}')
-            result = out.getvalue().strip()
-            pattern = f'^\\[{model_name}\\] \\({id}\\) '\
-                f'\\{{.*\'age\': 89.*\\}}$'
-            self.assertTrue(re.search(pattern, result))
-        # When id does not exist
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(
-                f'{model_name}.update("id-not-in-storage", {vals})')
-            result = out.getvalue().strip()
-            self.assertEqual("** no instance found **", result)
-        # When id is not valid for the class
-        with patch('sys.stdout', new=StringIO()) as out:
-            HBNBCommand().onecmd(
-                f'BaseModel.update("{id}", {vals})')
-            result = out.getvalue().strip()
-            self.assertEqual("** no instance found **", result)
+        for model_name in CLASSES:
+            # Create some new object and get the id
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'create {model_name}')
+                id = out.getvalue().strip()
+                UUID(id)
+                self.created_ids[id] = model_name
+            # For normal running of update
+            vals = '{\'first_name\': "John", "age": 89, "email":"fake@al.com"}'
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(
+                    f'{model_name}.update("{id}", {vals})')
+                result = out.getvalue().strip()
+                self.assertEqual(len(result), 0)
+            # Test that the attribute was added successfully
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(f'show {model_name} {id}')
+                result = out.getvalue().strip()
+                pattern = f'^\\[{model_name}\\] \\({id}\\) '\
+                    f'\\{{.*\'age\': 89.*\\}}$'
+                self.assertTrue(re.search(pattern, result))
+            # When id does not exist
+            with patch('sys.stdout', new=StringIO()) as out:
+                HBNBCommand().onecmd(
+                    f'{model_name}.update("id-not-in-storage", {vals})')
+                result = out.getvalue().strip()
+                self.assertEqual("** no instance found **", result)
+            # When id is not valid for the class
+            with patch('sys.stdout', new=StringIO()) as out:
+                if model_name == 'BaseModel':
+                    model_name = 'User'
+                else:
+                    model_name = 'BaseModel'
+                HBNBCommand().onecmd(
+                    f'{model_name}.update("{id}", {vals})')
+                result = out.getvalue().strip()
+                self.assertEqual("** no instance found **", result)
 
     def test_default(self):
         """
